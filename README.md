@@ -22,7 +22,7 @@ Before you begin, ensure you have met the following requirements:
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/dante4rt/Discord-GMGN-Chat-Bot.git
+   git clone https://github.com/surya9099/Discord-GMGN-Chat-Bot.git
    ```
 2. Navigate to the repository directory:
    ```sh
