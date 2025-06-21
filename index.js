@@ -76,8 +76,8 @@ const sendCronMessage = (message, time, color, delayPerChannelMs = 1000) => {
   );
 };
 
-const dailyJob = sendCronMessage('!daily', '0 1 * * *', 'green', 1000);
-const achievementsJob = sendCronMessage('!achievements', '0 2 * * *', 'blue', 2000);
+const dailyJob = sendCronMessage('!daily', '0 2 * * *', 'green', 1000);
+const achievementsJob = sendCronMessage('!achievements', '0 3 * * *', 'blue', 2000);
 
 dailyJob.start();
 achievementsJob.start();
