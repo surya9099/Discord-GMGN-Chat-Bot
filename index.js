@@ -29,6 +29,9 @@ const sendCronMessage = (message, time, color, delayPerChannelMs = 1000) => {
   return new CronJob(
     time,
     () => {
+      // Ini akan menampung promise dari setTimeout
+      let delayPromise = Promise.resolve(); 
+
       const sendMessageSequentially = (index = 0) => {
         if (index >= channelIDs.length) {
           console.log(`All messages for "${message}" sent.`.yellow);
@@ -40,45 +43,55 @@ const sendCronMessage = (message, time, color, delayPerChannelMs = 1000) => {
           console.error(
             `Invalid channel ID "${channelId}" found in channels.txt`.red
           );
-          return sendMessageSequentially(index + 1);
+          // Langsung panggil yang berikutnya tanpa delay jika channel ID tidak valid
+          return sendMessageSequentially(index + 1); 
         }
 
-        bot
-          .sendMessageToChannel(channelId, message)
-          .then((res) => {
-            const logMessage = `Channel ID : ${channelId} | Message : ${
-              res.content
-            } | Date : ${new Date().toUTCString()}`;
-            console.log(logMessage[color]);
-            fs.appendFile('logs.txt', logMessage + '\n', (err) => {
-              if (err) console.error('Failed to write to logs.txt'.red, err);
+        // --- Perubahan Ada di Sini ---
+        // Tampilkan cooldown sebelum MENGIRIM pesan
+        const delaySeconds = delayPerChannelMs / 1000;
+        if (index > 0) { // Hanya tampilkan delay untuk channel ke-2 dan seterusnya
+            console.log(
+                `Waiting for ${delaySeconds} seconds before sending "${message}" to channel ${channelId}...`.grey
+            );
+            // Bungkus setTimeout ke dalam Promise agar pengiriman pesan menunggu delay selesai
+            delayPromise = new Promise(resolve => {
+                setTimeout(resolve, delayPerChannelMs);
             });
-          })
-          .catch((err) => {
-            const errorLog = `Failed to send message to channel ${channelId} | Date : ${new Date().toUTCString()} | Error : ${
-              err.response.data.message
-            }`;
-            console.error(errorLog.red);
-            fs.appendFile('logs.txt', errorLog + '\n', (err) => {
-              if (err) console.error('Failed to write to logs.txt'.red, err);
-            });
-          })
-          .finally(() => {
-            // Tampilkan cooldown sebelum mengirim pesan ke channel berikutnya
-            if (index + 1 < channelIDs.length) { // Hanya tampilkan jika masih ada channel berikutnya
-              const nextChannelId = channelIDs[index + 1];
-              const delaySeconds = delayPerChannelMs / 1000;
-              console.log(
-                `Waiting for ${delaySeconds} seconds before sending to channel ${nextChannelId} (${message})...`.grey
-              );
-            } else {
-                console.log(`Finished sending all "${message}" messages for this scheduled run.`.grey);
-            }
-            setTimeout(() => sendMessageSequentially(index + 1), delayPerChannelMs);
-          });
+        } else {
+            // Untuk channel pertama, tidak ada delay sebelumnya, langsung log persiapan kirim
+            console.log(`Preparing to send "${message}" to channel ${channelId}...`.grey);
+        }
+
+        delayPromise.then(() => {
+            bot
+              .sendMessageToChannel(channelId, message)
+              .then((res) => {
+                const logMessage = `Channel ID : ${channelId} | Message : ${
+                  res.content
+                } | Date : ${new Date().toUTCString()}`;
+                console.log(logMessage[color]);
+                fs.appendFile('logs.txt', logMessage + '\n', (err) => {
+                  if (err) console.error('Failed to write to logs.txt'.red, err);
+                });
+              })
+              .catch((err) => {
+                const errorLog = `Failed to send message to channel ${channelId} | Date : ${new Date().toUTCString()} | Error : ${
+                  err.response.data.message
+                }`;
+                console.error(errorLog.red);
+                fs.appendFile('logs.txt', errorLog + '\n', (err) => {
+                  if (err) console.error('Failed to write to logs.txt'.red, err);
+                });
+              })
+              .finally(() => {
+                // Setelah selesai mengirim (dan delay sebelumnya), panggil berikutnya
+                sendMessageSequentially(index + 1);
+              });
+        }); // Tutup delayPromise.then()
       };
 
-      sendMessageSequentially();
+      sendMessageSequentially(); // Mulai pengiriman
     },
     null,
     true,
