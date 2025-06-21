@@ -87,4 +87,4 @@ console.log('\n===================================='.cyan);
 console.log('         Surya99 Discord Bot        '.cyan);
 console.log('====================================\n'.cyan);
 
-console.log('Cron jobs started.'.yellow);
+console.log('Bot Mengirim Pesan dimulai.'.yellow);
