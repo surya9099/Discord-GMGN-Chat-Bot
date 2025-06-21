@@ -52,12 +52,12 @@ const sendCronMessage = (message, time, color, delayPerChannelMs = 1000) => { //
         bot
           .sendMessageToChannel(channelId, message)
           .then((res) => { // Jika pesan berhasil dikirim
-            const loessage = `Channel ID : ${channelId} | Message : ${
+            const logMessage = `Channel ID : ${channelId} | Message : ${
               res.content
             } | Date : ${new Date().toUTCString()}`;
-            console.log(loessage[color]); // Log ke konsol dengan warna
+            console.log(logMessage[color]); // Log ke konsol dengan warna
             // Tulis log ke file logs.txt
-            fs.appendFile('logs.txt', loessage + '\n', (err) => {
+            fs.appendFile('logs.txt', logMessage + '\n', (err) => {
               if (err) console.error('Failed to write to logs.txt'.red, err);
             });
           })
@@ -87,18 +87,19 @@ const sendCronMessage = (message, time, color, delayPerChannelMs = 1000) => { //
 };
 
 // --- Definisi Cron Jobs ---
-// Penting: Waktu cron dihitung berdasarkan UTC. Sesuaikan dengan selisih waktu WIB (UTC+7).
+// Penting: Waktu cron dihitung berdasarkan UTC. Untuk WIB (Waktu Indonesia Barat) adalah UTC+7.
+// Jadi, 08:00 WIB = 01:00 UTC, dan 09:00 WIB = 02:00 UTC.
 
 // Mengatur pesan '!daily' pada jam 8:00 WIB (ini sama dengan 01:00 UTC)
 // Cooldown antar channel untuk !daily adalah 1000 milidetik (1 detik)
-const Job = sendCronMessage('!daily', '0 1 * * *', 'green', 1000);
+const dailyJob = sendCronMessage('!daily', '0 1 * * *', 'green', 1000);
 
 // Mengatur pesan '!achievements' pada jam 9:00 WIB (ini sama dengan 02:00 UTC)
 // Cooldown antar channel untuk !achievements adalah 2000 milidetik (2 detik)
-const gnJob = sendCronMessage('!achievements', '0 2 * * *', 'blue', 2000);
+const achievementsJob = sendCronMessage('!achievements', '0 2 * * *', 'blue', 2000);
 
 // --- Memulai Cron Jobs ---
-Job.start();
-gnJob.start();
+dailyJob.start();
+achievementsJob.start();
 
 console.log('Cron jobs started.'.yellow);
