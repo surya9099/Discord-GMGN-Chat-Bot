@@ -64,6 +64,16 @@ const sendCronMessage = (message, time, color, delayPerChannelMs = 1000) => {
             });
           })
           .finally(() => {
+            // Tampilkan cooldown sebelum mengirim pesan ke channel berikutnya
+            if (index + 1 < channelIDs.length) { // Hanya tampilkan jika masih ada channel berikutnya
+              const nextChannelId = channelIDs[index + 1];
+              const delaySeconds = delayPerChannelMs / 1000;
+              console.log(
+                `Waiting for ${delaySeconds} seconds before sending to channel ${nextChannelId} (${message})...`.grey
+              );
+            } else {
+                console.log(`Finished sending all "${message}" messages for this scheduled run.`.grey);
+            }
             setTimeout(() => sendMessageSequentially(index + 1), delayPerChannelMs);
           });
       };
@@ -76,13 +86,17 @@ const sendCronMessage = (message, time, color, delayPerChannelMs = 1000) => {
   );
 };
 
-const dailyJob = sendCronMessage('!daily', '0 2 * * *', 'green', 1000);
-const achievementsJob = sendCronMessage('!achievements', '0 3 * * *', 'blue', 2000);
+// Jadwal untuk dailyJob dan achievementsJob
+// Waktu cron dihitung berdasarkan UTC. Untuk WIB (UTC+7):
+// 02:00 UTC = 09:00 WIB
+// 03:00 UTC = 10:00 WIB
+const dailyJob = sendCronMessage('!daily', '0 2 * * *', 'green', 1000); // 1 detik cooldown
+const achievementsJob = sendCronMessage('!achievements', '0 3 * * *', 'blue', 2000); // 2 detik cooldown
 
 dailyJob.start();
 achievementsJob.start();
 
-// Pesan ini akan muncul di konsol saat bot dimulai/running
+// Pesan banner Surya99 yang muncul saat bot dimulai
 console.log('\n===================================='.cyan);
 console.log('         Surya99 Discord Bot        '.cyan);
 console.log('====================================\n'.cyan);
